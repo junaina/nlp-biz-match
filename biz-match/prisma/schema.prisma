@@ -11,6 +11,7 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+
 /**
  * A company in the marketplace.
  * For Day 1 we only keep a name; more fields (bio, website, etc.)
