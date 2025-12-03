@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+/**
+ * A company in the marketplace.
+ * For Day 1 we only keep a name; more fields (bio, website, etc.)
+ * will be added on later days.
+ */
+model Business {
+  id        String   @id @default(uuid())
+  name      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+}
+
+/**
+ * A user who logs into the system.
+ * Each user belongs to exactly one Business.
+ */
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
