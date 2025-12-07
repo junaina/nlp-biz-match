@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// prisma/schema.prisma
 
 datasource db {
   provider = "postgresql"
@@ -12,34 +8,111 @@ generator client {
   provider = "prisma-client-js"
 }
 
-/**
- * A company in the marketplace.
- * For Day 1 we only keep a name; more fields (bio, website, etc.)
- * will be added on later days.
- */
 model Business {
-  id        String   @id @default(uuid())
-  name      String
+  id    String @id @default(uuid())
+  name  String
+
+  // NEW profile fields
+  logoUrl         String?  // logo URL (we'll just store a string for now)
+  locationCity    String?
+  locationCountry String?
+  website         String?
+  bio             String?
+
+  isBuyer    Boolean @default(true)
+  isProvider Boolean @default(false)
+  verified   Boolean @default(false)
+
+  avgRating   Float? @default(0)
+  ratingCount Int    @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
+  users            User[]
+  providerServices ProviderService[]
+  portfolioItems   PortfolioItem[]
+  requests         Request[]
 }
 
-/**
- * A user who logs into the system.
- * Each user belongs to exactly one Business.
- */
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String
   name         String
 
-  businessId   String
-  business     Business @relation(fields: [businessId], references: [id])
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Each service the business offers
+model ProviderService {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  title       String
+  description String
+  category    String
+  industry    String?
+
+  skills     String[] // maps to text[] in Postgres
+  minBudget  Int?
+  maxBudget  Int?
+  embedding  Json?    // we'll fill this later when we add embeddings
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// Simple portfolio items shown on profile
+model PortfolioItem {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  title       String
+  description String
+  industry    String?
+  year        Int?
+  imageUrl    String?
+
+  createdAt   DateTime @default(now())
+}
+enum RequestStatus {
+  DRAFT
+  MATCHING
+  COMPLETED
+  CANCELLED
+}
+
+model Request {
+  id         String        @id @default(uuid())
+  businessId String
+  business   Business      @relation(fields: [businessId], references: [id])
+
+  // What the buyer typed
+  title       String       // short label, we can auto-generate if needed
+  description String       // full prompt
+
+  // Simple structured fields from the form
+  budgetMin Int?
+  budgetMax Int?
+  industry  String?
+  timeline  String?
+
+  status RequestStatus @default(MATCHING)
+
+  // AI / matching interpretation (to be filled later)
+  aiCategory   String?
+  aiSkills     String[]
+  aiFeatures   String?
+  aiComplexity String?
+  embedding    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
