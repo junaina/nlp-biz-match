@@ -37,7 +37,7 @@ export default async function ProviderSetupPage({ searchParams }: PageProps) {
     !business.locationCountry;
 
   if (needsOnboarding) {
-    return <ProviderOnboarding business={business} services={services} />;
+    return <ProviderOnboarding business={business} />;
   }
 
   // Otherwise show the provider profile + services manager (existing UI)
