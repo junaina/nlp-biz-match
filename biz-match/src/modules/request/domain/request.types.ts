@@ -19,6 +19,15 @@ export type MatchResult = {
   industry: string | null;
   score: number;
   why: string;
+  // NEW: for cards + filters
+  ratingValue?: number | null;
+  ratingCount?: number;
+  isVerified?: boolean;
+  locationCity?: string | null;
+  locationCountry?: string | null;
+  minBudget?: number | null;
+  maxBudget?: number | null;
+  skills?: string[];
 };
 
 export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {
