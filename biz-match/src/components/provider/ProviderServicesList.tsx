@@ -55,6 +55,7 @@ export function ProviderServicesList({
                 serviceId={service.id} // 👈 specific service
                 className="bg-blue-600 text-white hover:bg-blue-700"
               />
+              {/**shortlist service button */}
             </div>
           </article>
         ))}

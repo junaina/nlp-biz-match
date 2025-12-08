@@ -114,11 +114,11 @@ export function MatchResults({
       <nav className="flex items-center justify-between gap-4">
         <button
           type="button"
-          onClick={() => router.push("/app")}
+          onClick={() => router.push("/app/match")}
           className="inline-flex items-center text-xs text-slate-500 hover:text-slate-800"
         >
           <ArrowLeft className="h-3 w-3 mr-1" />
-          Back to Home
+          Back to Brief
         </button>
 
         <div className="flex items-center gap-2">
