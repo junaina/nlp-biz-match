@@ -7,6 +7,7 @@ import type {
 } from "@/modules/request/domain/request.types";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { ShortlistToggleButton } from "@/components/match/ShortlistToggleButton";
 
 type Props = {
   request: RequestSummary | null;
@@ -47,7 +48,7 @@ export function MatchResults({ request, matches }: Props) {
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
-                    href={`/app/providers/${match.businessId}`}
+                    href={`/app/providers/${match.businessId}?requestId=${request.id}&serviceId=${match.serviceId}`}
                     className="font-medium hover:underline"
                     prefetch={false}
                   >
@@ -74,7 +75,10 @@ export function MatchResults({ request, matches }: Props) {
                   >
                     View profile
                   </Link>
-                  {/* Later: add "Shortlist" and per-service RequestProposalButton here */}
+                  <ShortlistToggleButton
+                    requestId={request.id}
+                    providerServiceId={match.serviceId}
+                  />{" "}
                 </div>
               </div>
             </article>

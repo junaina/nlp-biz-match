@@ -7,13 +7,16 @@ import { ProviderServicesList } from "@/components/provider/ProviderServicesList
 
 type RouteParams = {
   businessId: string;
+  searchParams: { requestId?: string; serviceId?: string };
 };
 
 export default async function ProviderPublicPage(props: {
   params: RouteParams;
+  searchParams: { requestId?: string; serviceId?: string };
 }) {
   // 👇 THIS is the important line
   const { businessId } = await props.params;
+  const { requestId, serviceId } = await props.searchParams;
 
   const result = await getProviderPublicProfile(businessId);
 
@@ -45,6 +48,8 @@ export default async function ProviderPublicPage(props: {
           rating={business.avgRating}
           reviewCount={business.ratingCount}
           verified={business.verified}
+          requestId={requestId} // No request context here
+          primaryServiceId={serviceId} // No request context here
         />
 
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
