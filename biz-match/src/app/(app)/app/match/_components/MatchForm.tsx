@@ -1,27 +1,22 @@
-// src/app/(app)/app/match/_components/MatchForm.tsx
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createRequestClient } from "@/modules/request/client/request.client";
-import type {
-  MatchResult,
-  RequestSummary,
-} from "@/modules/request/domain/request.types";
-import { MatchResults } from "./MatchResults";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 
 export function MatchForm() {
+  const router = useRouter();
+
   const [description, setDescription] = useState("");
   const [industry, setIndustry] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
   const [timeline, setTimeline] = useState("");
 
-  const [request, setRequest] = useState<RequestSummary | null>(null);
-  const [matches, setMatches] = useState<MatchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,8 +40,9 @@ export function MatchForm() {
       };
 
       const result = await createRequestClient(payload);
-      setRequest(result.request);
-      setMatches(result.matches);
+
+      // ✅ Redirect to dedicated results page
+      router.push(`/app/match/results/${result.request.id}`);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Something went wrong");
@@ -126,8 +122,6 @@ export function MatchForm() {
           Find matches
         </Button>
       </form>
-
-      <MatchResults request={request} matches={matches} />
     </div>
   );
 }
