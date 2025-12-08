@@ -92,10 +92,6 @@ export function ProviderHero({
 
         <div className="flex flex-col sm:flex-row gap-2">
           {/* Global "Request proposal" */}
-          <RequestProposalButton
-            businessId={businessId}
-            className="bg-white text-blue-600 hover:bg-slate-100"
-          />
         </div>
       </div>
     </section>
