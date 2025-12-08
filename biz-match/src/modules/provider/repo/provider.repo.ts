@@ -50,3 +50,9 @@ export function listProviderServicesForBusiness(businessId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+export async function markBusinessAsProvider(businessId: string) {
+  return prisma.business.update({
+    where: { id: businessId },
+    data: { isProvider: true },
+  });
+}

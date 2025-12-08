@@ -59,7 +59,7 @@ export default async function ProviderPublicPage(props: {
               categories={categories}
               industries={industries}
             />
-            <ProviderServicesList services={services} />
+            <ProviderServicesList services={services} businessId={businessId} />
           </div>
 
           <aside className="space-y-4">
