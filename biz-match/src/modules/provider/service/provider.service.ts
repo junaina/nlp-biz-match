@@ -10,6 +10,7 @@ import {
   updateBusinessProfile,
   createProviderService,
   listProviderServicesForBusiness,
+  markBusinessAsProvider,
 } from "../repo/provider.repo";
 import { getCurrentUser } from "@/modules/auth/service/current-user.service";
 
@@ -58,4 +59,20 @@ export async function getProviderPublicProfile(businessId: string) {
   const services = await listProviderServicesForBusiness(businessId);
 
   return { business, services };
+}
+export async function createMyService(input: CreateServiceInput) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  // Ensure this business is marked as a provider
+  await markBusinessAsProvider(user.businessId);
+
+  // Then create the service itself
+  return createProviderService(user.businessId, input);
+}
+export async function becomeProvider() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  await markBusinessAsProvider(user.businessId);
 }

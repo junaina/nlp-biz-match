@@ -1,3 +1,4 @@
+// src/components/provider/RequestProposalButton.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -6,7 +7,7 @@ import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  businessId: string;
+  businessId: string | undefined;
   serviceId?: string;
   className?: string;
 };
@@ -19,7 +20,16 @@ export function RequestProposalButton({
   const router = useRouter();
 
   function handleClick() {
-    const params = new URLSearchParams({ businessId });
+    if (!businessId) {
+      console.error(
+        "RequestProposalButton: businessId is undefined. Check the parent component."
+      );
+      alert("Something went wrong: missing provider id.");
+      return;
+    }
+
+    const params = new URLSearchParams();
+    params.set("businessId", businessId);
     if (serviceId) params.set("serviceId", serviceId);
 
     router.push(`/app/proposals/new?${params.toString()}`);
