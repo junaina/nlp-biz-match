@@ -7,6 +7,10 @@ import { MatchResults } from "../../_components/MatchResults";
 
 export const dynamic = "force-dynamic";
 
+interface ShortlistItemSummary {
+  providerServiceId: string;
+}
+
 export default async function MatchResultsPage(props: {
   params: Promise<{ requestId: string }>;
 }) {
@@ -72,7 +76,7 @@ export default async function MatchResultsPage(props: {
   });
 
   const initiallyShortlistedServiceIds = shortlistItems.map(
-    (item) => item.providerServiceId
+    (item: ShortlistItemSummary) => item.providerServiceId
   );
 
   const requestSummary: RequestSummary = {
