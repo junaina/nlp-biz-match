@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Business, ProviderService } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -15,9 +14,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
+// Minimal shape of what this component needs from Business
+type ProviderOnboardingBusiness = {
+  id: string;
+  locationCity: string | null;
+  locationCountry: string | null;
+  website: string | null;
+  bio: string | null;
+};
+
 type Props = {
-  business: Business;
-  services: ProviderService[];
+  business: ProviderOnboardingBusiness;
 };
 
 export default function ProviderOnboarding({ business }: Props) {
@@ -47,7 +54,7 @@ export default function ProviderOnboarding({ business }: Props) {
           bio,
         } as any); // subset of BusinessProfileInput
 
-        // ✅ Go to the next step (provider profile + services)
+        // Go to the next step (provider profile + services)
         router.push("/app/provider");
       } catch (err: any) {
         console.error(err);
