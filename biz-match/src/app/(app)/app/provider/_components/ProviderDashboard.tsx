@@ -1,13 +1,27 @@
 // src/app/(app)/app/provider/_components/ProviderDashboard.tsx
 "use client";
 
-import type { Business, ProviderService } from "@prisma/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+// Minimal shapes for what the UI actually needs
+type ProviderDashboardBusiness = {
+  id: string;
+  name: string;
+};
+
+type ProviderDashboardService = {
+  id: string;
+  title: string;
+  category: string;
+  industry: string | null;
+  minBudget: number | null;
+  maxBudget: number | null;
+};
+
 type Props = {
-  business: Business;
-  services: ProviderService[];
+  business: ProviderDashboardBusiness;
+  services: ProviderDashboardService[];
 };
 
 export default function ProviderDashboard({ business, services }: Props) {
