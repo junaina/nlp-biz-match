@@ -5,8 +5,8 @@ import type { RegisterInput, LoginInput } from "../domain/auth.types";
 
 const COOKIE_NAME = "auth_token";
 
-function setAuthCookie(token: string) {
-  const store = cookies();
+async function setAuthCookie(token: string) {
+  const store = await cookies();
   const days = Number(process.env.JWT_EXPIRES_IN_DAYS ?? "7");
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
@@ -19,12 +19,12 @@ function setAuthCookie(token: string) {
 
 export async function registerAndLogin(input: RegisterInput) {
   const { user, business, token } = await register(input);
-  setAuthCookie(token);
+  await setAuthCookie(token);
   return { user, business };
 }
 
 export async function loginAndSetCookie(input: LoginInput) {
   const { user, business, token } = await login(input);
-  setAuthCookie(token);
+  await setAuthCookie(token);
   return { user, business };
 }

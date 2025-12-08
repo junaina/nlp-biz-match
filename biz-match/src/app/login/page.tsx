@@ -1,119 +1,109 @@
 // src/app/login/page.tsx
-"use client";
+import { redirect } from "next/navigation";
+import { loginAndSetCookie } from "@/modules/auth/client/auth.client";
 
-import { useState, FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-
-export default function LoginPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error ?? "Login failed");
-        return;
-      }
-
-      // Cookie is set by the API route; just navigate
-      const next = searchParams.get("next") || "/app/match";
-      router.push(next);
-    } catch (err: any) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+type LoginPageProps = {
+  searchParams?: {
+    error?: string;
+    success?: string;
   };
+};
+
+// This is the actual server action used by the <form>.
+async function loginAction(formData: FormData) {
+  "use server";
+
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  if (typeof email !== "string" || typeof password !== "string") {
+    redirect("/login?error=Invalid%20form%20data");
+  }
+
+  try {
+    await loginAndSetCookie({ email, password });
+  } catch (err) {
+    console.error("Login failed:", err);
+    redirect("/login?error=Invalid%20email%20or%20password");
+  }
+
+  redirect("/app/match");
+}
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  const errorMessage = searchParams?.error
+    ? decodeURIComponent(searchParams.error)
+    : "";
+  const successMessage = searchParams?.success
+    ? decodeURIComponent(searchParams.success)
+    : "";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm border border-slate-100 space-y-5">
-        <header className="space-y-1">
-          <h1 className="text-lg font-semibold">Sign in</h1>
-          <p className="text-xs text-muted-foreground">
-            Access your BizMatch workspace.
+    <main className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="w-full max-w-md rounded-xl bg-white shadow-sm border border-slate-200 p-8 space-y-6">
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold text-slate-900">
+            Sign in to BizMatch
+          </h1>
+          <p className="text-sm text-slate-500">
+            Use your email and password to continue.
           </p>
-        </header>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-1.5">
+        {errorMessage && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+            {errorMessage}
+          </p>
+        )}
+
+        {successMessage && (
+          <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md px-3 py-2">
+            {successMessage}
+          </p>
+        )}
+
+        {/* Use the wrapper server action, not loginAndSetCookie directly */}
+        <form action={loginAction} className="space-y-4">
+          <div className="space-y-1">
             <label
-              className="text-xs font-medium text-slate-700"
               htmlFor="email"
+              className="block text-sm font-medium text-slate-700"
             >
               Email
             </label>
-            <Input
+            <input
               id="email"
+              name="email"
               type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-9 text-sm"
+              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label
-              className="text-xs font-medium text-slate-700"
               htmlFor="password"
+              className="block text-sm font-medium text-slate-700"
             >
               Password
             </label>
-            <Input
+            <input
               id="password"
+              name="password"
               type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-9 text-sm"
+              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
             />
           </div>
 
-          {error && <p className="text-xs text-red-600">{error}</p>}
-
-          <Button
+          <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full h-9 text-xs font-medium"
+            className="w-full inline-flex items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
           >
-            {isSubmitting ? "Signing in…" : "Sign in"}
-          </Button>
+            Sign in
+          </button>
         </form>
-
-        <p className="text-[11px] text-muted-foreground text-center">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/register"
-            className="font-medium text-blue-600 hover:underline"
-          >
-            Sign up
-          </Link>
-        </p>
       </div>
-    </div>
+    </main>
   );
 }

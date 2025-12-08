@@ -1,53 +1,53 @@
 // src/app/register/page.tsx
-"use client";
-
-import { useState, FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { registerAndLogin } from "@/modules/auth/client/auth.client";
 
-export default function RegisterPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [name, setName] = useState("");
-  const [businessName, setBusinessName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, businessName, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error ?? "Registration failed");
-        return;
-      }
-
-      // Cookie is set by the API route; navigate into app
-      const next = searchParams.get("next") || "/app/match";
-      router.push(next);
-    } catch (err: any) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+type RegisterPageProps = {
+  searchParams?: {
+    error?: string;
+    success?: string;
   };
+};
+
+// Server action that handles registration + sets cookie
+async function registerAction(formData: FormData) {
+  "use server";
+
+  const name = formData.get("name");
+  const businessName = formData.get("businessName");
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  if (
+    typeof name !== "string" ||
+    typeof businessName !== "string" ||
+    typeof email !== "string" ||
+    typeof password !== "string"
+  ) {
+    redirect("/register?error=Invalid%20form%20data");
+  }
+
+  try {
+    await registerAndLogin({ name, businessName, email, password });
+  } catch (err) {
+    console.error("Registration failed:", err);
+    redirect("/register?error=Registration%20failed");
+  }
+
+  // On success, go straight to the brief page
+  redirect("/app/match");
+}
+
+export default function RegisterPage({ searchParams }: RegisterPageProps) {
+  const errorMessage = searchParams?.error
+    ? decodeURIComponent(searchParams.error)
+    : "";
+  const successMessage = searchParams?.success
+    ? decodeURIComponent(searchParams.success)
+    : "";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
@@ -60,7 +60,19 @@ export default function RegisterPage() {
           </p>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        {errorMessage && (
+          <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+            {errorMessage}
+          </p>
+        )}
+
+        {successMessage && (
+          <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md px-3 py-2">
+            {successMessage}
+          </p>
+        )}
+
+        <form action={registerAction} className="space-y-3">
           <div className="space-y-1.5">
             <label
               className="text-xs font-medium text-slate-700"
@@ -68,13 +80,7 @@ export default function RegisterPage() {
             >
               Your name
             </label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="h-9 text-sm"
-            />
+            <Input id="name" name="name" required className="h-9 text-sm" />
           </div>
 
           <div className="space-y-1.5">
@@ -86,8 +92,7 @@ export default function RegisterPage() {
             </label>
             <Input
               id="businessName"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
+              name="businessName"
               required
               className="h-9 text-sm"
             />
@@ -102,10 +107,9 @@ export default function RegisterPage() {
             </label>
             <Input
               id="email"
+              name="email"
               type="email"
               autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
               className="h-9 text-sm"
             />
@@ -120,23 +124,16 @@ export default function RegisterPage() {
             </label>
             <Input
               id="password"
+              name="password"
               type="password"
               autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
               className="h-9 text-sm"
             />
           </div>
 
-          {error && <p className="text-xs text-red-600">{error}</p>}
-
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full h-9 text-xs font-medium"
-          >
-            {isSubmitting ? "Creating account…" : "Sign up"}
+          <Button type="submit" className="w-full h-9 text-xs font-medium">
+            Sign up
           </Button>
         </form>
 
