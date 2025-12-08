@@ -10,7 +10,6 @@ export const dynamic = "force-dynamic";
 export default async function MatchResultsPage(props: {
   params: Promise<{ requestId: string }>;
 }) {
-  // ✅ In Next 16, params is a Promise – we must await it
   const { requestId } = await props.params;
 
   if (!requestId) {
@@ -35,7 +34,6 @@ export default async function MatchResultsPage(props: {
     );
   }
 
-  // Load the request and make sure it belongs to this buyer
   const request = await prisma.request.findUnique({
     where: { id: requestId },
     select: {
@@ -58,16 +56,13 @@ export default async function MatchResultsPage(props: {
     );
   }
 
-  // Load all provider services for matching
   const services = await listAllProviderServicesForMatching();
 
-  // Re-run LLM matching based on the stored brief
   const matches = await scoreServicesWithGroq(
     services as any,
     request.description
   );
 
-  // Load which services are already shortlisted for this request
   const shortlistItems = await prisma.shortlistItem.findMany({
     where: {
       requestId,
@@ -90,14 +85,7 @@ export default async function MatchResultsPage(props: {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-2xl font-semibold">Your matches</h1>
-          <p className="text-sm text-muted-foreground max-w-2xl">
-            These providers were matched based on your brief.
-          </p>
-        </header>
-
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <MatchResults
           request={requestSummary}
           matches={matches}

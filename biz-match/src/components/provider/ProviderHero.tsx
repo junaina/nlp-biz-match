@@ -96,27 +96,6 @@ export function ProviderHero({
             businessId={businessId}
             className="bg-white text-blue-600 hover:bg-slate-100"
           />
-
-          {requestId && primaryServiceId ? (
-            // Real shortlist toggle
-            <ShortlistToggleButton
-              requestId={requestId}
-              providerServiceId={primaryServiceId}
-              // no initialShortlisted → defaults to false ("Add to shortlist")
-            />
-          ) : (
-            // Fallback if we don't know which request/service to use yet
-            <Button
-              type="button"
-              disabled
-              className={cn(
-                "border border-white/60 bg-transparent text-white hover:bg-white/10",
-                "opacity-70 cursor-not-allowed"
-              )}
-            >
-              Add to shortlist
-            </Button>
-          )}
         </div>
       </div>
     </section>

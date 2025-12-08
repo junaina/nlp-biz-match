@@ -103,6 +103,7 @@ export async function scoreServicesWithGroq(
     .filter((m) => byId.has(m.serviceId))
     .map((m) => {
       const svc = byId.get(m.serviceId)!;
+      const biz = svc.business;
       return {
         serviceId: svc.id,
         businessId: svc.businessId,
@@ -112,6 +113,15 @@ export async function scoreServicesWithGroq(
         industry: svc.industry ?? null,
         score: m.score,
         why: m.why,
+        // NEW: card/filter data
+        ratingValue: biz.avgRating ?? null,
+        ratingCount: biz.ratingCount ?? 0,
+        isVerified: biz.verified,
+        locationCity: biz.locationCity ?? null,
+        locationCountry: biz.locationCountry ?? null,
+        minBudget: svc.minBudget ?? null,
+        maxBudget: svc.maxBudget ?? null,
+        skills: svc.skills ?? [],
       };
     });
 
