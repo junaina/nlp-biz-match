@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bizmatch
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: production
+
+      # Prisma / Postgres
+      DATABASE_URL: postgres://postgres:postgres@db:5432/bizmatch
+
+      # Auth
+      JWT_SECRET: "6dc529240812bad758d3187df572eee2ed95a545dabc2efe5e798788157a4344"
+      JWT_EXPIRES_IN_DAYS: "7"
+
+      # LLM (Groq) – fill with your real values
+      GROQ_API_KEY: "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"
+      GROQ_MODEL: "llama-3.1-8b-instant"
+
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  db-data:
