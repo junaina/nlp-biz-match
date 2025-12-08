@@ -1,0 +1,139 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Business {
+  id    String @id @default(uuid())
+  name  String
+
+  // NEW profile fields
+  logoUrl         String?  // logo URL (we'll just store a string for now)
+  locationCity    String?
+  locationCountry String?
+  website         String?
+  bio             String?
+
+  isBuyer    Boolean @default(true)
+  isProvider Boolean @default(false)
+  verified   Boolean @default(false)
+
+  avgRating   Float? @default(0)
+  ratingCount Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  providerServices ProviderService[]
+  portfolioItems   PortfolioItem[]
+  requests         Request[]
+  shortlistAsBuyer    ShortlistItem[] @relation("BuyerShortlistBusiness")
+  shortlistAsProvider ShortlistItem[] @relation("ProviderShortlistBusiness")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Each service the business offers
+model ProviderService {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  title       String
+  description String
+  category    String
+  industry    String?
+
+  skills     String[] // maps to text[] in Postgres
+  minBudget  Int?
+  maxBudget  Int?
+  embedding  Json?    // we'll fill this later when we add embeddings
+  shortlistItems ShortlistItem[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// Simple portfolio items shown on profile
+model PortfolioItem {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+
+  title       String
+  description String
+  industry    String?
+  year        Int?
+  imageUrl    String?
+
+  createdAt   DateTime @default(now())
+}
+enum RequestStatus {
+  DRAFT
+  MATCHING
+  COMPLETED
+  CANCELLED
+}
+
+model Request {
+  id         String        @id @default(uuid())
+  businessId String
+  business   Business      @relation(fields: [businessId], references: [id])
+
+  // What the buyer typed
+  title       String       // short label, we can auto-generate if needed
+  description String       // full prompt
+
+  // Simple structured fields from the form
+  budgetMin Int?
+  budgetMax Int?
+  industry  String?
+  timeline  String?
+
+  status RequestStatus @default(MATCHING)
+
+  // AI / matching interpretation (to be filled later)
+  aiCategory   String?
+  aiSkills     String[]
+  aiFeatures   String?
+  aiComplexity String?
+  embedding    Json?
+  shortlist  ShortlistItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model ShortlistItem {
+  id                String   @id @default(uuid())
+
+  requestId         String
+  request           Request  @relation(fields: [requestId], references: [id])
+
+  buyerBusinessId   String
+  buyerBusiness     Business @relation("BuyerShortlistBusiness", fields: [buyerBusinessId], references: [id])
+
+  providerBusinessId String
+  providerBusiness   Business @relation("ProviderShortlistBusiness", fields: [providerBusinessId], references: [id])
+
+  providerServiceId String
+  providerService   ProviderService @relation(fields: [providerServiceId], references: [id])
+
+  createdAt         DateTime @default(now())
+
+  @@unique([requestId, providerServiceId]) // one entry per request+service
+}
