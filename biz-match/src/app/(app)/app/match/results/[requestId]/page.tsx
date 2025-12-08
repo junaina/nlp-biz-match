@@ -72,7 +72,7 @@ export default async function MatchResultsPage(props: {
   });
 
   const initiallyShortlistedServiceIds = shortlistItems.map(
-    (i) => i.providerServiceId
+    (item) => item.providerServiceId
   );
 
   const requestSummary: RequestSummary = {
