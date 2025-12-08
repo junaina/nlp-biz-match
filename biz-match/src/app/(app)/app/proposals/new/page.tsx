@@ -25,7 +25,7 @@ export default async function NewProposalPage({ searchParams }: PageProps) {
   const { business, services } = profile;
   const selectedService =
     serviceId && services
-      ? services.find((s) => s.id === serviceId)
+      ? services.find((service: { id: string }) => service.id === serviceId)
       : undefined;
 
   return (
