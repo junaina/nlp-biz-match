@@ -321,10 +321,12 @@ export default async function ComparePage(props: {
                       className="px-6 py-4 align-top space-y-2"
                     >
                       <div>
-                        {/* You can wire this to a proposal flow later */}
-                        <button className="w-full rounded-full bg-blue-600 text-white text-xs font-medium py-2">
+                        <Link
+                          href={`/app/proposals/new?businessId=${svc.businessId}&serviceId=${svc.serviceId}`}
+                          className="block w-full rounded-full bg-blue-600 text-white text-xs font-medium py-2 text-center hover:bg-blue-700"
+                        >
                           Request proposal
-                        </button>
+                        </Link>
                       </div>
                       <div>
                         <Link
