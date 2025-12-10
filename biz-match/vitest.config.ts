@@ -1,0 +1,16 @@
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+import path from "node:path";
+
+export default defineConfig({
+  test: {
+    environment: "node",
+    globals: true,
+    include: ["tests/**/*.test.ts"], // <– all tests live here
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"), // matches tsconfig paths
+    },
+  },
+});

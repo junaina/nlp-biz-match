@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16
@@ -29,7 +27,7 @@ services:
       JWT_SECRET: "6dc529240812bad758d3187df572eee2ed95a545dabc2efe5e798788157a4344"
       JWT_EXPIRES_IN_DAYS: "7"
 
-      # LLM (Groq) – fill with your real values
+      # LLM (Groq)
       GROQ_API_KEY: "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"
       GROQ_MODEL: "llama-3.1-8b-instant"
 
