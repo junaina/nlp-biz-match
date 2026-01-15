@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ShortlistToggleButton } from "@/components/match/ShortlistToggleButton";
 import type {
   MatchResult,
@@ -50,8 +49,6 @@ export function MatchResults({
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [industryFilter, setIndustryFilter] = useState<string>("all");
 
-  if (!request) return null;
-
   const industries = useMemo(
     () =>
       Array.from(
@@ -68,6 +65,19 @@ export function MatchResults({
     () => matches.filter((m) => m.isVerified).length,
     [matches]
   );
+  const filteredMatches = useMemo(() => {
+    return matches.filter((m) => {
+      const rating = m.ratingValue ?? 0;
+
+      if (minRating !== null && (rating || 0) < minRating) return false;
+      if (verifiedOnly && !m.isVerified) return false;
+      if (industryFilter !== "all" && m.industry !== industryFilter) {
+        return false;
+      }
+      return true;
+    });
+  }, [matches, minRating, verifiedOnly, industryFilter]);
+  if (!request) return null;
 
   const handleShortlistChange = (serviceId: string, isShortlisted: boolean) => {
     setShortlistedIds((prev) => {
@@ -94,19 +104,6 @@ export function MatchResults({
     setVerifiedOnly(false);
     setIndustryFilter("all");
   };
-
-  const filteredMatches = useMemo(() => {
-    return matches.filter((m) => {
-      const rating = m.ratingValue ?? 0;
-
-      if (minRating !== null && (rating || 0) < minRating) return false;
-      if (verifiedOnly && !m.isVerified) return false;
-      if (industryFilter !== "all" && m.industry !== industryFilter) {
-        return false;
-      }
-      return true;
-    });
-  }, [matches, minRating, verifiedOnly, industryFilter]);
 
   return (
     <div className="space-y-6">
@@ -309,7 +306,7 @@ function ResultCard({
     <article className="rounded-3xl bg-white shadow-sm border border-slate-100 p-5 space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-purple-500 to-purple-600 text-xs font-semibold text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-b from-purple-500 to-purple-600 text-xs font-semibold text-white">
             #{rank}
           </div>
 

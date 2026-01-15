@@ -30,25 +30,24 @@ export function MatchForm() {
     }
 
     setLoading(true);
-    try {
-      const payload = {
-        description,
-        industry: industry || null,
-        budgetMin: budgetMin ? Number(budgetMin) : null,
-        budgetMax: budgetMax ? Number(budgetMax) : null,
-        timeline: timeline || null,
-      };
+    const payload = {
+      description,
+      industry: industry || null,
+      budgetMin: budgetMin ? Number(budgetMin) : null,
+      budgetMax: budgetMax ? Number(budgetMax) : null,
+      timeline: timeline || null,
+    };
 
-      const result = await createRequestClient(payload);
+    const result = await createRequestClient(payload);
 
-      // ✅ Redirect to dedicated results page
-      router.push(`/app/match/results/${result.request.id}`);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Something went wrong");
-    } finally {
+    if (!result.ok) {
+      setError(result.error.message);
       setLoading(false);
+      return;
     }
+
+    router.push(`/app/match/results/${result.data.request.id}`);
+    setLoading(false);
   }
 
   return (
