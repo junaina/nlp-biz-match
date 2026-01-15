@@ -187,10 +187,17 @@ export async function buildComparisonUsingGroq(
     });
 
     content = completion.choices[0]?.message?.content ?? null;
-  } catch (err: any) {
+  } catch (err) {
     console.error("Groq comparison error:", err);
 
-    const maybeStatus = err?.status ?? err?.response?.status;
+    // Groq SDK / fetch libs often put status on err.status or err.response.status
+    let maybeStatus: number | undefined;
+
+    if (err && typeof err === "object") {
+      const e = err as { status?: number; response?: { status?: number } };
+      maybeStatus = e.status ?? e.response?.status;
+    }
+
     if (maybeStatus === 429) {
       return {
         services: baseline,

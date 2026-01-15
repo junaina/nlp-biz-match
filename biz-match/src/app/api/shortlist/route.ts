@@ -4,24 +4,44 @@ import {
   addToShortlist,
   removeFromShortlist,
 } from "@/modules/request/service/shortlist.service";
+import { getErrorMessage } from "@/lib/error";
+import { isRecord } from "@/lib/typeguards";
+
+function parseShortlistBody(
+  raw: unknown
+): { requestId: string; providerServiceId: string } | null {
+  if (!isRecord(raw)) return null;
+
+  const requestId = raw.requestId;
+  const providerServiceId = raw.providerServiceId;
+
+  if (typeof requestId !== "string" || typeof providerServiceId !== "string")
+    return null;
+
+  return { requestId, providerServiceId };
+}
 
 export async function POST(req: Request) {
   try {
-    const { requestId, providerServiceId } = await req.json();
+    const rawBody: unknown = await req.json();
+    const parsed = parseShortlistBody(rawBody);
 
-    if (!requestId || !providerServiceId) {
+    if (!parsed) {
       return NextResponse.json(
         { error: "requestId and providerServiceId are required" },
         { status: 400 }
       );
     }
 
-    const item = await addToShortlist(requestId, providerServiceId);
+    const item = await addToShortlist(
+      parsed.requestId,
+      parsed.providerServiceId
+    );
     return NextResponse.json({ item }, { status: 201 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("POST /api/shortlist error", err);
     return NextResponse.json(
-      { error: err?.message ?? "Failed to add to shortlist" },
+      { error: getErrorMessage(err) || "Failed to add to shortlist" },
       { status: 400 }
     );
   }
@@ -29,21 +49,22 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const { requestId, providerServiceId } = await req.json();
+    const rawBody: unknown = await req.json();
+    const parsed = parseShortlistBody(rawBody);
 
-    if (!requestId || !providerServiceId) {
+    if (!parsed) {
       return NextResponse.json(
         { error: "requestId and providerServiceId are required" },
         { status: 400 }
       );
     }
 
-    await removeFromShortlist(requestId, providerServiceId);
+    await removeFromShortlist(parsed.requestId, parsed.providerServiceId);
     return NextResponse.json({ ok: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("DELETE /api/shortlist error", err);
     return NextResponse.json(
-      { error: err?.message ?? "Failed to remove from shortlist" },
+      { error: getErrorMessage(err) || "Failed to remove from shortlist" },
       { status: 400 }
     );
   }

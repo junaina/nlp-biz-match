@@ -15,3 +15,14 @@ export class AuthError extends HttpError {
     this.name = "AuthError";
   }
 }
+export function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const maybeMessage = (err as { message?: unknown }).message;
+    if (typeof maybeMessage === "string") return maybeMessage;
+  }
+
+  return "Something went wrong";
+}

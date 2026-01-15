@@ -1,10 +1,7 @@
 // src/components/provider/ProviderHero.tsx
 import Image from "next/image";
-import { Star, MapPin, BadgeCheck, Send, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { RequestProposalButton } from "./RequestProposalButton";
-import { cn } from "@/lib/utils";
-import { ShortlistToggleButton } from "@/components/match/ShortlistToggleButton";
+import { Star, MapPin, BadgeCheck } from "lucide-react";
+
 type ProviderHeroProps = {
   businessId: string;
   name: string;
@@ -19,7 +16,6 @@ type ProviderHeroProps = {
 };
 
 export function ProviderHero({
-  businessId,
   name,
   tagline,
   logoUrl,
@@ -27,8 +23,6 @@ export function ProviderHero({
   rating,
   reviewCount,
   verified,
-  requestId,
-  primaryServiceId,
 }: ProviderHeroProps) {
   const displayRating = rating && rating > 0;
 

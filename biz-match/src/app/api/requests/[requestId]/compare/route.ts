@@ -1,6 +1,12 @@
 // src/app/api/requests/[requestId]/compare/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { compareShortlistedServices } from "@/modules/request/service/comparison.service";
+import { getErrorMessage } from "@/lib/error";
+import { isRecord, isStringArray } from "@/lib/typeguards";
+
+type RouteContext = {
+  params?: { requestId?: string } | Promise<{ requestId?: string }>;
+};
 
 /**
  * Body shape:
@@ -8,14 +14,10 @@ import { compareShortlistedServices } from "@/modules/request/service/comparison
  *   "services": ["serviceId1", "serviceId2", ...]
  * }
  */
-export async function POST(
-  request: NextRequest,
-  context: any // keep this loose to satisfy Next 16 RouteHandlerConfig
-) {
+export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    // Next 16 types use Promise<{ requestId }>, runtime usually passes plain object.
     const rawParams = await Promise.resolve(context?.params);
-    const requestId: string | undefined = rawParams?.requestId;
+    const requestId = rawParams?.requestId;
 
     if (!requestId) {
       return NextResponse.json(
@@ -24,10 +26,13 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
-    const services = body?.services as string[] | undefined;
+    const rawBody: unknown = await request.json();
+    if (!isRecord(rawBody)) {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!Array.isArray(services) || services.length < 2) {
+    const services = rawBody.services;
+    if (!isStringArray(services) || services.length < 2) {
       return NextResponse.json(
         { error: "You must provide at least two service ids to compare" },
         { status: 400 }
@@ -36,12 +41,12 @@ export async function POST(
 
     const result = await compareShortlistedServices(requestId, services);
     return NextResponse.json(result);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error in compare route:", err);
     return NextResponse.json(
       {
         error:
-          err?.message ??
+          getErrorMessage(err) ||
           "Failed to compare shortlisted services for this request",
       },
       { status: 500 }

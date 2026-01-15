@@ -14,13 +14,13 @@
 /coverage
 
 #docker
-/docker-compose.yml
-/Dockerfile
+docker-compose.yml
+Dockerfile
 
 # next.js
 /.next/
 /out/
-
+/tests
 # production
 /build
 

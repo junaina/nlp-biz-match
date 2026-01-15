@@ -21,6 +21,9 @@ type CreateMyRequestInput = {
 export async function createRequestAndMatch(
   input: CreateMyRequestInput
 ): Promise<{ request: RequestSummary; matches: MatchResult[] }> {
+  type MatcherServicesInput = Parameters<typeof scoreServicesWithGroq>[0];
+  const services: MatcherServicesInput =
+    await listAllProviderServicesForMatching();
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     throw new Error("Unauthenticated");
@@ -42,8 +45,6 @@ export async function createRequestAndMatch(
     status: input.status ?? "MATCHING",
   });
 
-  const services = await listAllProviderServicesForMatching();
-
   // 🔁 OLD (remove this):
   // const matches: MatchResult[] = scoreServicesAgainstPrompt(
   //   services,
@@ -52,7 +53,7 @@ export async function createRequestAndMatch(
 
   // ✅ NEW: use Groq-based matcher (falls back to naive if no key / error)
   const matches: MatchResult[] = await scoreServicesWithGroq(
-    services as any, // typed as ServiceWithBusiness in matcher
+    services,
     input.description
   );
 

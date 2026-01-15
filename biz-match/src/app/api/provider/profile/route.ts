@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { updateMyBusinessProfile } from "@/modules/provider/service/provider.service";
-
+import { getErrorMessage } from "@/lib/error";
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
@@ -17,11 +17,17 @@ export async function PUT(request: Request) {
     });
 
     return NextResponse.json(updated);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
     console.error(err);
+    if (message === "Unauthenticated") {
+      return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    }
+
+    console.error("route failed:", err);
     return NextResponse.json(
-      { error: err.message ?? "Failed to update profile" },
-      { status: err.message === "Not authenticated" ? 401 : 400 }
+      { error: message || "Internal server error" },
+      { status: 500 }
     );
   }
 }
