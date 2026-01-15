@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { login } from "@/modules/auth/service/auth.service";
-
+import { AuthError } from "@/lib/error";
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
@@ -25,11 +25,13 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ userId: user.id, businessId: business.id });
-  } catch (err: any) {
-    console.error(err);
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     return NextResponse.json(
-      { error: err.message ?? "Login failed" },
-      { status: 400 }
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
 }

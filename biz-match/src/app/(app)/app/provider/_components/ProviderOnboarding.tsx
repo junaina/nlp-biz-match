@@ -13,7 +13,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+export type BusinessProfileUpdateInput = {
+  locationCity?: string | null;
+  locationCountry?: string | null;
+  website?: string | null;
+  bio?: string | null;
+  name?: string;
+  // add name?: string if you want name editable later
+};
 
+type UpdateMyBusinessProfileInput = Parameters<
+  typeof updateMyBusinessProfile
+>[0];
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const maybeMessage = (err as { message?: unknown }).message;
+    if (typeof maybeMessage === "string") return maybeMessage;
+  }
+
+  return "Failed to save provider profile.";
+}
 // Minimal shape of what this component needs from Business
 type ProviderOnboardingBusiness = {
   id: string;
@@ -47,18 +69,20 @@ export default function ProviderOnboarding({ business }: Props) {
       try {
         // Mark them as provider + update profile
         await becomeProvider();
-        await updateMyBusinessProfile({
+        const update: UpdateMyBusinessProfileInput = {
           locationCity,
           locationCountry,
           website,
           bio,
-        } as any); // subset of BusinessProfileInput
+        };
+
+        await updateMyBusinessProfile(update);
 
         // Go to the next step (provider profile + services)
         router.push("/app/provider");
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err?.message ?? "Failed to save provider profile.");
+        setError(getErrorMessage(err));
       }
     });
   };

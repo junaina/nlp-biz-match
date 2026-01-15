@@ -19,3 +19,16 @@ export type CreateServiceInput = {
   minBudget?: number | null;
   maxBudget?: number | null;
 };
+export type BusinessProfileUpdateInput = Partial<
+  Pick<
+    BusinessProfileInput,
+    | "name"
+    | "logoUrl"
+    | "locationCity"
+    | "locationCountry"
+    | "website"
+    | "bio"
+    | "isBuyer"
+    | "isProvider"
+  >
+>;

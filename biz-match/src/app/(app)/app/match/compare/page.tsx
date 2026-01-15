@@ -43,13 +43,10 @@ export default async function ComparePage(props: {
   let comparison;
   try {
     comparison = await compareShortlistedServices(requestId, serviceIds);
-  } catch (err: any) {
-    console.error(err);
+  } catch {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-sm text-red-600">
-          {err?.message ?? "Could not load comparison."}
-        </p>
+        <p className="text-sm text-red-600">{"Could not load comparison."}</p>
       </div>
     );
   }

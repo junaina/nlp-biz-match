@@ -60,12 +60,11 @@ export default async function MatchResultsPage(props: {
     );
   }
 
-  const services = await listAllProviderServicesForMatching();
+  type ServicesInput = Parameters<typeof scoreServicesWithGroq>[0];
 
-  const matches = await scoreServicesWithGroq(
-    services as any,
-    request.description
-  );
+  const services: ServicesInput = await listAllProviderServicesForMatching();
+
+  const matches = await scoreServicesWithGroq(services, request.description);
 
   const shortlistItems = await prisma.shortlistItem.findMany({
     where: {
