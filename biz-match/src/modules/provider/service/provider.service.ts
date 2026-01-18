@@ -22,7 +22,7 @@ export async function getMyBusiness() {
 }
 
 export async function updateMyBusinessProfile(
-  input: BusinessProfileUpdateInput
+  input: BusinessProfileUpdateInput,
 ) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
@@ -35,24 +35,24 @@ export async function updateMyBusinessProfile(
     logoUrl:
       input.logoUrl !== undefined
         ? input.logoUrl
-        : user.business.logoUrl ?? undefined,
+        : (user.business.logoUrl ?? undefined),
 
     locationCity:
       input.locationCity !== undefined
         ? input.locationCity
-        : user.business.locationCity ?? undefined,
+        : (user.business.locationCity ?? undefined),
 
     locationCountry:
       input.locationCountry !== undefined
         ? input.locationCountry
-        : user.business.locationCountry ?? undefined,
+        : (user.business.locationCountry ?? undefined),
 
     website:
       input.website !== undefined
         ? input.website
-        : user.business.website ?? undefined,
+        : (user.business.website ?? undefined),
 
-    bio: input.bio !== undefined ? input.bio : user.business.bio ?? undefined,
+    bio: input.bio !== undefined ? input.bio : (user.business.bio ?? undefined),
 
     isBuyer:
       input.isBuyer !== undefined ? input.isBuyer : user.business.isBuyer,
@@ -78,14 +78,49 @@ export async function listMyServices() {
 
   return listProviderServicesForBusiness(user.businessId);
 }
-export async function getProviderPublicProfile(businessId: string) {
-  const business = await getBusinessById(businessId);
+export type ProviderPublicService = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  industry: string | null;
+  skills: string[];
+  minBudget: number | null;
+  maxBudget: number | null;
+};
+export type ProviderPublicBusiness = {
+  id: string;
+  name: string;
+  bio?: string | null;
+  logoUrl?: string | null;
+  locationCity?: string | null;
+  locationCountry?: string | null;
+  avgRating?: number | null;
+  ratingCount?: number | null;
+  verified?: boolean | null;
+  [key: string]: unknown;
+};
+
+export type ProviderPublicProfile = {
+  business: ProviderPublicBusiness;
+  services: ProviderPublicService[];
+};
+
+export async function getProviderPublicProfile(
+  businessId: string,
+): Promise<ProviderPublicProfile | null> {
+  const business = (await getBusinessById(
+    businessId,
+  )) as ProviderPublicBusiness | null;
   if (!business || !business.isProvider) return null;
 
-  const services = await listProviderServicesForBusiness(businessId);
+  const services = (await listProviderServicesForBusiness(
+    businessId,
+  )) as ProviderPublicService[];
 
   return { business, services };
 }
+
 export async function createMyService(input: CreateServiceInput) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");

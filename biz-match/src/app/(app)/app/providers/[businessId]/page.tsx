@@ -47,7 +47,7 @@ export default async function ProviderPublicPage(props: {
           locationText={locationText}
           rating={business.avgRating}
           reviewCount={business.ratingCount}
-          verified={business.verified}
+          verified={business.verified ?? false}
           requestId={requestId} // No request context here
           primaryServiceId={serviceId} // No request context here
         />
