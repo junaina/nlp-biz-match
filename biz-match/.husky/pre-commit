@@ -1,4 +1,8 @@
+# #!/bin/sh
+# . "$(dirname "$0")/_/husky.sh"
+
+# npx lint-staged
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
-
-npx lint-staged
+echo "✅ PRE-COMMIT RAN"
+exit 1
