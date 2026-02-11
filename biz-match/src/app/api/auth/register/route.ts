@@ -1,43 +1,31 @@
 // src/app/api/auth/register/route.ts
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { register } from "@/modules/auth/service/auth.service"; // the service that creates user+business+token
-import { AuthError } from "@/lib/error";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(request: Request) {
-  try {
-    const { name, businessName, email, password } = await request.json();
+export async function POST(req: Request) {
+  const { email, password } = await req.json().catch(() => ({}));
 
-    if (!name || !businessName || !email || !password) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
-
-    const { user, business, token } = await register({
-      name,
-      businessName,
-      email,
-      password,
-    });
-
-    const cookieStore = await cookies(); // 👈 NEW: await cookies()
-    const days = Number(process.env.JWT_EXPIRES_IN_DAYS ?? "7");
-
-    cookieStore.set("auth_token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * days,
-    });
-
-    return NextResponse.json({ userId: user.id, businessId: business.id });
-  } catch (err) {
-    if (err instanceof AuthError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
-    }
+  if (!email || !password) {
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "email and password required" },
+      { status: 400 },
     );
   }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+
+  const { data, error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  // Note: session may be null if email confirmation is enabled.
+  return NextResponse.json({
+    user: data.user,
+    session: data.session,
+  });
 }
