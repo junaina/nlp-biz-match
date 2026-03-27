@@ -30,12 +30,13 @@ async function loginAction(formData: FormData) {
   redirect("/app/match");
 }
 
-export default function LoginPage({ searchParams }: LoginPageProps) {
-  const errorMessage = searchParams?.error
-    ? decodeURIComponent(searchParams.error)
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const errorMessage = params?.error
+    ? decodeURIComponent(params.error)
     : "";
-  const successMessage = searchParams?.success
-    ? decodeURIComponent(searchParams.success)
+  const successMessage = params?.success
+    ? decodeURIComponent(params.success)
     : "";
 
   return (

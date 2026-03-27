@@ -35,6 +35,10 @@ model Business {
   requests         Request[]
   shortlistAsBuyer    ShortlistItem[] @relation("BuyerShortlistBusiness")
   shortlistAsProvider ShortlistItem[] @relation("ProviderShortlistBusiness")
+
+  sentProposals     Proposal[] @relation("SentProposals")
+  receivedProposals Proposal[] @relation("ReceivedProposals")
+  sentMessages      Message[]
 }
 
 model User {
@@ -66,6 +70,7 @@ model ProviderService {
   maxBudget  Int?
   embedding  Json?    // we'll fill this later when we add embeddings
   shortlistItems ShortlistItem[]
+  proposals      Proposal[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -84,6 +89,7 @@ model PortfolioItem {
 
   createdAt   DateTime @default(now())
 }
+
 enum RequestStatus {
   DRAFT
   MATCHING
@@ -115,9 +121,11 @@ model Request {
   aiComplexity String?
   embedding    Json?
   shortlist  ShortlistItem[]
+  proposals  Proposal[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model ShortlistItem {
   id                String   @id @default(uuid())
 
@@ -133,7 +141,134 @@ model ShortlistItem {
   providerServiceId String
   providerService   ProviderService @relation(fields: [providerServiceId], references: [id])
 
+  proposal          Proposal?
+
   createdAt         DateTime @default(now())
 
   @@unique([requestId, providerServiceId]) // one entry per request+service
+}
+
+enum ProposalStatus {
+  PENDING      // Buyer sent, provider hasn't reviewed
+  UNDER_REVIEW // Provider is reviewing
+  ACCEPTED     // Buyer accepted - project starts
+  REJECTED     // Provider rejected or declined
+  WITHDRAWN    // Buyer withdrew before acceptance
+  EXPIRED      // Auto-expire after X days
+}
+
+enum ConversationStage {
+  INQUIRY          // Initial interest/questions
+  PROPOSAL_SENT    // Buyer sent proposal
+  NEGOTIATING      // Back-and-forth on terms
+  HIRED            // Proposal accepted, project started
+  COMPLETED        // Project finished
+  CANCELLED        // Conversation closed without hire
+}
+
+enum MessageType {
+  TEXT              // Regular message
+  PROPOSAL_SUBMIT   // System: "Buyer submitted proposal"
+  PROPOSAL_ACCEPTED // System: "Buyer accepted proposal"
+  PROPOSAL_REJECTED // System: "Provider rejected proposal"
+  QUOTE_REVISED     // Buyer revised quote
+  MILESTONE_UPDATE  // Project milestone update
+  ATTACHMENT        // File attachment
+}
+
+model Proposal {
+  id        String   @id @default(uuid())
+  
+  shortlistItemId String  @unique
+  shortlistItem   ShortlistItem @relation(fields: [shortlistItemId], references: [id], onDelete: Cascade)
+  
+  requestId         String
+  request           Request  @relation(fields: [requestId], references: [id])
+  
+  buyerBusinessId   String
+  buyerBusiness     Business @relation("SentProposals", fields: [buyerBusinessId], references: [id])
+  
+  providerBusinessId String
+  providerBusiness   Business @relation("ReceivedProposals", fields: [providerBusinessId], references: [id])
+  
+  providerServiceId String
+  providerService   ProviderService @relation(fields: [providerServiceId], references: [id])
+  
+  coverLetter    String
+  proposedBudget Int
+  timeline       String
+  deliverables   String
+  termsAndConditions String?
+  
+  attachmentUrls String[]
+  
+  status ProposalStatus @default(PENDING)
+  
+  submittedAt   DateTime @default(now())
+  reviewedAt    DateTime?
+  respondedAt   DateTime?
+  expiresAt     DateTime?
+  
+  acceptedAt    DateTime?
+  rejectionReason String?
+  
+  conversation  Conversation?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([buyerBusinessId, status, createdAt])
+  @@index([providerBusinessId, status, createdAt])
+  @@index([requestId, status])
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  
+  proposalId String @unique
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  
+  requestId         String
+  buyerBusinessId   String
+  providerBusinessId String
+  
+  stage         ConversationStage @default(INQUIRY)
+  lastMessageAt DateTime @default(now())
+  isArchived    Boolean  @default(false)
+  
+  buyerUnreadCount    Int @default(0)
+  providerUnreadCount Int @default(0)
+  
+  messages Message[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([buyerBusinessId, lastMessageAt])
+  @@index([providerBusinessId, lastMessageAt])
+  @@index([requestId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  senderBusinessId String?
+  senderBusiness   Business? @relation(fields: [senderBusinessId], references: [id])
+  
+  type       MessageType @default(TEXT)
+  content    String
+  metadata   Json?
+  
+  attachmentUrls String[]
+  
+  readByBuyer    Boolean @default(false)
+  readByProvider Boolean @default(false)
+  readAt         DateTime?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([conversationId, createdAt])
+  @@index([senderBusinessId, createdAt])
 }
